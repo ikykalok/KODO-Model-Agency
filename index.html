@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KŌDO — Model Agency</title>
+<meta name="description" content="A model agency for faces that don't fit a type. Paris, Milan, Tokyo." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23e5242c'/%3E%3Ctext x='32' y='44' font-family='Arial' font-weight='900' font-size='34' text-anchor='middle' fill='%23fff'%3EK%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f1efea;
+    --ink: #0f0f0f;
+    --ink-2: rgba(15, 15, 15, .62);
+    --ink-3: rgba(15, 15, 15, .38);
+    --red: #e5242c;
+    --line: rgba(15, 15, 15, .14);
+    --display: "Anton", Impact, sans-serif;
+    --serif: "Instrument Serif", Georgia, serif;
+    --sans: "Inter", system-ui, sans-serif;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  body.is-loading { overflow: hidden; }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; -webkit-user-drag: none; user-select: none; }
+  ::selection { background: var(--red); color: #fff; }
+  .small { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; }
+
+  /* ---------- loader: a contact sheet shuffled, then a flash ---------- */
+  .loader { position: fixed; inset: 0; z-index: 80; background: var(--paper); display: grid; place-items: center; }
+  .loader.is-done { pointer-events: none; animation: loaderOut .9s var(--ease) forwards; }
+  @keyframes loaderOut { to { opacity: 0; visibility: hidden; } }
+  .loader__stack { position: relative; width: min(240px, 46vw); aspect-ratio: 3 / 4; }
+  .loader__stack img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+  .loader__stack img.is-on { opacity: 1; }
+  .loader__meta { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: space-between; padding: 0 clamp(20px, 4vw, 48px); }
+  .loader__count { font: 400 clamp(60px, 9vw, 120px)/.8 var(--display); }
+  .flash { position: fixed; inset: 0; z-index: 90; background: #fff; opacity: 0; pointer-events: none; }
+
+  /* ---------- nav ---------- */
+  .nav { position: fixed; z-index: 50; top: 0; left: 0; right: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 18px clamp(16px, 3vw, 40px); mix-blend-mode: difference; color: #fff; }
+  .nav__logo { font: 400 26px/1 var(--display); letter-spacing: .04em; }
+  .nav__links { display: flex; gap: 28px; font-size: 13px; font-weight: 500; }
+  .nav__links a { position: relative; }
+  .nav__links a::after { content: ""; position: absolute; left: 0; bottom: -4px; width: 100%; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .45s var(--ease); }
+  .nav__links a:hover::after { transform: scaleX(1); transform-origin: left; }
+  .nav__right { display: flex; justify-content: flex-end; gap: 16px; align-items: center; font-size: 13px; font-weight: 500; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; border-radius: 999px; font: 600 13px/1 var(--sans); letter-spacing: .01em; cursor: pointer; border: 0; transition: transform .45s var(--ease), background .3s, color .3s; }
+  .btn--red { background: var(--red); color: #fff; }
+  .btn--red:hover { transform: translateY(-2px) rotate(-1deg); }
+  .btn--ink { background: var(--ink); color: var(--paper); }
+  .btn--line { border: 1px solid var(--line); color: var(--ink); }
+  .btn--line:hover { background: var(--ink); color: var(--paper); }
+  .nav .btn { background: #fff; color: #000; padding: 11px 16px; }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; height: 100svh; min-height: 680px; overflow: hidden; }
+  .hero__word { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-46%); text-align: center; font: 400 clamp(180px, 34vw, 640px)/.8 var(--display); letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; pointer-events: none; }
+  .hero__word .mask { display: inline-block; overflow: hidden; vertical-align: top; padding-top: .14em; margin-top: -.14em; }
+  .hero__word .mask > span { display: block; transform: translateY(110%); }
+  .hero__lead { position: absolute; left: 50%; top: 50%; width: clamp(220px, 22vw, 360px); aspect-ratio: 3 / 4; transform: translate(-50%, -48%); z-index: 3; overflow: hidden; clip-path: inset(100% 0 0 0); box-shadow: 0 50px 90px -40px rgba(0, 0, 0, .45); }
+  .hero__lead img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.25); }
+  .hero__lead figcaption { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; color: #fff; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; text-shadow: 0 1px 12px rgba(0, 0, 0, .45); }
+  .polaroid { position: absolute; z-index: 4; width: clamp(110px, 10vw, 170px); background: #fff; padding: 8px 8px 30px; box-shadow: 0 24px 50px -24px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .08); cursor: grab; touch-action: none; user-select: none; will-change: transform; opacity: 0; }
+  .polaroid:active { cursor: grabbing; }
+  .polaroid img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; pointer-events: none; filter: grayscale(1) contrast(1.05); transition: filter .5s; }
+  .polaroid:hover img, .polaroid.is-held img { filter: none; }
+  .polaroid span { position: absolute; left: 10px; right: 10px; bottom: 9px; display: flex; justify-content: space-between; font: 400 15px/1 var(--serif); font-style: italic; }
+  .polaroid span b { font: 600 9.5px/1.4 var(--sans); font-style: normal; letter-spacing: .14em; color: var(--ink-3); }
+  .hero__foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; justify-content: space-between; align-items: end; padding: 0 clamp(16px, 3vw, 40px) 26px; gap: 30px; }
+  .hero__tag { max-width: 340px; font: 400 clamp(22px, 2vw, 30px)/1.12 var(--serif); }
+  .hero__tag em { color: var(--red); }
+  .hero__now { text-align: right; display: grid; gap: 6px; }
+  .hero__now b { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .hero__now b::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: rec 1.2s steps(2) infinite; }
+  @keyframes rec { 50% { opacity: 0; } }
+  .hint { position: absolute; z-index: 5; right: clamp(16px, 3vw, 40px); top: 50%; writing-mode: vertical-rl; color: var(--ink-3); }
+  .rise { opacity: 0; transform: translateY(16px); }
+
+  /* ---------- index: who we represent ---------- */
+  .index { position: relative; padding: 20vh clamp(16px, 3vw, 40px) 18vh; }
+  .index__head { display: flex; justify-content: space-between; align-items: end; gap: 30px; border-bottom: 1px solid var(--ink); padding-bottom: 22px; }
+  .index__head h2 { font: 400 clamp(64px, 9vw, 150px)/.86 var(--display); text-transform: uppercase; }
+  .index__head h2 em { font: italic 400 .62em/1 var(--serif); text-transform: none; color: var(--red); margin-left: .1em; }
+  .index__head p { max-width: 320px; color: var(--ink-2); line-height: 1.55; font-size: 15px; }
+  .index__body { display: grid; grid-template-columns: 1fr minmax(260px, 30vw); gap: 4vw; align-items: start; }
+  .rows { list-style: none; }
+  .row { display: grid; grid-template-columns: 70px 1fr auto auto; align-items: baseline; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--line); cursor: pointer; transition: color .35s, padding .5s var(--ease); color: var(--ink-3); }
+  .row b { font: 400 clamp(40px, 5.4vw, 92px)/.92 var(--display); text-transform: uppercase; letter-spacing: .005em; transition: letter-spacing .6s var(--ease); }
+  .row.is-on { color: var(--ink); padding-left: 18px; }
+  .row.is-on b { letter-spacing: .02em; }
+  .row.is-on .row__n { color: var(--red); }
+  .row__n { font-weight: 600; font-size: 12px; letter-spacing: .1em; }
+  .row__city, .row__h { font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+  .frame { position: sticky; top: 14vh; aspect-ratio: 3 / 4; overflow: hidden; background: #ddd; margin-top: 40px; }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.08); transition: opacity .6s var(--ease), transform 1.2s var(--ease); }
+  .frame img.is-on { opacity: 1; transform: scale(1); }
+  .frame__flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 2; }
+  .frame__cap { position: absolute; z-index: 3; left: 14px; right: 14px; bottom: 12px; display: flex; justify-content: space-between; color: #fff; mix-blend-mode: difference; }
+  .follow { position: fixed; left: 0; top: 0; z-index: 30; width: 200px; aspect-ratio: 3 / 4; pointer-events: none; overflow: hidden; opacity: 0; transform: translate(-50%, -50%) scale(.8); transition: opacity .3s, transform .5s var(--ease); }
+  .follow.is-on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .follow img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ---------- marquee ---------- */
+  .strip { overflow: hidden; padding: 6vh 0 14vh; }
+  .strip__row { display: flex; gap: 14px; width: max-content; will-change: transform; }
+  .strip__row figure { position: relative; width: clamp(200px, 18vw, 300px); aspect-ratio: 3 / 4; overflow: hidden; flex: none; }
+  .strip__row img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); transition: filter .6s, transform 1s var(--ease); }
+  .strip__row figure:hover img { filter: none; transform: scale(1.05); }
+  .strip__row figcaption { position: absolute; left: 10px; bottom: 10px; color: #fff; font: italic 400 20px/1 var(--serif); }
+  .ticker { display: flex; white-space: nowrap; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 18px 0; margin-bottom: 28px; overflow: hidden; }
+  .ticker div { display: flex; gap: 40px; padding-right: 40px; font: 400 clamp(28px, 3vw, 46px)/1 var(--display); text-transform: uppercase; animation: tick 26s linear infinite; }
+  .ticker i { font-style: normal; color: var(--red); }
+  @keyframes tick { to { transform: translateX(-100%); } }
+
+  /* ---------- join ---------- */
+  .join { position: relative; background: var(--ink); color: var(--paper); padding: 18vh clamp(16px, 3vw, 40px); overflow: hidden; }
+  .join__grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 6vw; align-items: center; max-width: 1400px; margin: 0 auto; }
+  .join h2 { font: 400 clamp(64px, 9vw, 150px)/.86 var(--display); text-transform: uppercase; }
+  .join h2 em { display: block; font: italic 400 .58em/1.1 var(--serif); text-transform: none; color: var(--red); }
+  .join p { color: rgba(241, 239, 234, .66); line-height: 1.6; max-width: 420px; margin-top: 26px; }
+  .drop { border: 1px dashed rgba(241, 239, 234, .35); padding: 30px; display: grid; gap: 18px; }
+  .drop__slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .slot { aspect-ratio: 3 / 4; border: 1px solid rgba(241, 239, 234, .2); display: grid; place-items: center; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: rgba(241, 239, 234, .5); position: relative; overflow: hidden; }
+  .slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); opacity: .9; }
+  .drop input { width: 100%; background: transparent; border: 0; border-bottom: 1px solid rgba(241, 239, 234, .3); color: var(--paper); font: 400 18px var(--sans); padding: 12px 0; outline: none; }
+  .drop input::placeholder { color: rgba(241, 239, 234, .4); }
+  .stats { display: flex; gap: 40px; margin-top: 44px; }
+  .stats b { display: block; font: 400 54px/1 var(--display); }
+  .stats span { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: rgba(241, 239, 234, .5); }
+
+  .foot { background: var(--ink); color: var(--paper); padding: 0 clamp(16px, 3vw, 40px) 30px; }
+  .foot__big { font: 400 clamp(120px, 31vw, 560px)/.76 var(--display); text-align: center; color: var(--red); letter-spacing: -0.01em; }
+  .foot__row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-top: 1px solid rgba(241, 239, 234, .18); padding-top: 22px; margin-top: 30px; color: rgba(241, 239, 234, .55); }
+
+  @media (max-width: 960px) {
+    .nav { grid-template-columns: 1fr auto; }
+    .nav__links { display: none; }
+    .hint { display: none; }
+    .hero__lead { width: 52vw; }
+    .hero__foot { flex-direction: column; align-items: flex-start; }
+    .hero__now { text-align: left; }
+    .hero__now b { justify-content: flex-start; }
+    .index__body { grid-template-columns: 1fr; }
+    .frame { display: none; }
+    .row { grid-template-columns: 40px 1fr; }
+    .row__city, .row__h { display: none; }
+    .join__grid { grid-template-columns: 1fr; }
+    .index__head { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body class="is-loading">
+
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__stack" id="stack">
+    <img src="assets/m3.webp" alt="" /><img src="assets/m2.webp" alt="" /><img src="assets/m6.webp" alt="" /><img src="assets/m4.webp" alt="" /><img src="assets/m5.webp" alt="" /><img src="assets/hero.webp" alt="" />
+  </div>
+  <div class="loader__meta"><span class="loader__count" id="count">001</span><span class="small" style="align-self:end">Kōdo · Casting SS27</span></div>
+</div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<div class="follow" id="follow" aria-hidden="true"><img alt="" /></div>
+
+<header class="nav">
+  <a href="#top" class="nav__logo">KŌDO</a>
+  <nav class="nav__links" aria-label="Main"><a href="#talent">Women</a><a href="#talent">Men</a><a href="#faces">New faces</a><a href="#join">Become a model</a></nav>
+  <div class="nav__right"><span class="small">SS27</span><a href="#join" class="btn">Book talent</a></div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-label="Kōdo">
+    <h1 class="hero__word" aria-label="Kōdo"><span class="mask"><span>K</span></span><span class="mask"><span>Ō</span></span><span class="mask"><span>D</span></span><span class="mask"><span>O</span></span></h1>
+    <figure class="hero__lead" id="lead"><img src="assets/hero.webp" alt="Mei Arakawa in a red wool coat" /><figcaption><span>Mei Arakawa</span><span>Paris · 178</span></figcaption></figure>
+    <figure class="polaroid" data-x="-31" data-y="-20" data-r="-8"><img src="assets/m2.webp" alt="Kofi Mensah" /><span>Kofi<b>No. 02</b></span></figure>
+    <figure class="polaroid" data-x="-37" data-y="16" data-r="6"><img src="assets/m3.webp" alt="Liv Halvorsen" /><span>Liv<b>No. 03</b></span></figure>
+    <figure class="polaroid" data-x="29" data-y="-24" data-r="7"><img src="assets/m4.webp" alt="Arjun Rao" /><span>Arjun<b>No. 04</b></span></figure>
+    <figure class="polaroid" data-x="36" data-y="12" data-r="-5"><img src="assets/m5.webp" alt="Inès Moreau" /><span>Inès<b>No. 05</b></span></figure>
+    <figure class="polaroid" data-x="19" data-y="28" data-r="11"><img src="assets/m6.webp" alt="Siobhán Reilly" /><span>Siobhán<b>No. 06</b></span></figure>
+    <span class="hint small">Drag the faces</span>
+    <div class="hero__foot">
+      <p class="hero__tag rise">A model agency for faces that <em>don't fit a type.</em></p>
+      <div class="hero__now small rise"><b>Now casting SS27</b><span>Paris · Milan · Tokyo · New York</span></div>
+    </div>
+  </section>
+
+  <section class="index" id="talent" aria-labelledby="talent-title">
+    <div class="index__head">
+      <h2 id="talent-title">The <em>board</em></h2>
+      <p>Thirty-eight people we believe in. No two alike, and none of them found on an app. Scroll the board, or hover a name.</p>
+    </div>
+    <div class="index__body">
+      <ol class="rows" id="rows">
+        <li class="row" data-img="assets/hero.webp"><span class="row__n">01</span><b>Mei Arakawa</b><span class="row__city">Paris</span><span class="row__h">178 cm</span></li>
+        <li class="row" data-img="assets/m2.webp"><span class="row__n">02</span><b>Kofi Mensah</b><span class="row__city">London</span><span class="row__h">191 cm</span></li>
+        <li class="row" data-img="assets/m3.webp"><span class="row__n">03</span><b>Liv Halvorsen</b><span class="row__city">Oslo</span><span class="row__h">180 cm</span></li>
+        <li class="row" data-img="assets/m4.webp"><span class="row__n">04</span><b>Arjun Rao</b><span class="row__city">Mumbai</span><span class="row__h">186 cm</span></li>
+        <li class="row" data-img="assets/m5.webp"><span class="row__n">05</span><b>Inès Moreau</b><span class="row__city">Milan</span><span class="row__h">174 cm</span></li>
+        <li class="row" data-img="assets/m6.webp"><span class="row__n">06</span><b>Siobhán Reilly</b><span class="row__city">Dublin</span><span class="row__h">177 cm</span></li>
+      </ol>
+      <div class="frame" id="frame">
+        <img src="assets/hero.webp" alt="" class="is-on" /><img src="assets/m2.webp" alt="" /><img src="assets/m3.webp" alt="" /><img src="assets/m4.webp" alt="" /><img src="assets/m5.webp" alt="" /><img src="assets/m6.webp" alt="" />
+        <span class="frame__flash" id="frameFlash"></span>
+        <div class="frame__cap small"><span id="capName">Mei Arakawa</span><span id="capN">01 / 06</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip" id="faces" aria-label="New faces">
+    <div class="ticker" aria-hidden="true"><div><span>New faces</span><i>✶</i><span>Shot on us</span><i>✶</i><span>No filters</span><i>✶</i><span>No apps</span><i>✶</i><span>New faces</span><i>✶</i><span>Shot on us</span><i>✶</i></div><div><span>New faces</span><i>✶</i><span>Shot on us</span><i>✶</i><span>No filters</span><i>✶</i><span>No apps</span><i>✶</i><span>New faces</span><i>✶</i><span>Shot on us</span><i>✶</i></div></div>
+    <div class="strip__row" id="stripRow">
+      <figure><img src="assets/m6.webp" alt="Siobhán Reilly" /><figcaption>Siobhán</figcaption></figure>
+      <figure><img src="assets/m4.webp" alt="Arjun Rao" /><figcaption>Arjun</figcaption></figure>
+      <figure><img src="assets/hero.webp" alt="Mei Arakawa" /><figcaption>Mei</figcaption></figure>
+      <figure><img src="assets/m5.webp" alt="Inès Moreau" /><figcaption>Inès</figcaption></figure>
+      <figure><img src="assets/m2.webp" alt="Kofi Mensah" /><figcaption>Kofi</figcaption></figure>
+      <figure><img src="assets/m3.webp" alt="Liv Halvorsen" /><figcaption>Liv</figcaption></figure>
+      <figure><img src="assets/m6.webp" alt="" /><figcaption>Siobhán</figcaption></figure>
+      <figure><img src="assets/m4.webp" alt="" /><figcaption>Arjun</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="join" id="join" aria-labelledby="join-title">
+    <div class="join__grid">
+      <div>
+        <h2 id="join-title">Be on<br />the board<em>— we're looking for you.</em></h2>
+        <p>Send three photographs taken today, in daylight, with no make-up and no filters. We answer every one of them within a week, yes or no.</p>
+        <div class="stats"><div><b data-n="1200">0</b><span>Applications a month</span></div><div><b data-n="38">0</b><span>On the board</span></div><div><b data-n="4">0</b><span>Cities</span></div></div>
+      </div>
+      <form class="drop" onsubmit="event.preventDefault(); this.querySelector('button').textContent = 'Sent — we\'ll write within a week';">
+        <div class="drop__slots"><div class="slot"><img src="assets/m3.webp" alt="" /></div><div class="slot">Profile</div><div class="slot">Full length</div></div>
+        <input type="text" placeholder="Your name" aria-label="Your name" />
+        <input type="email" placeholder="Email" aria-label="Email" />
+        <button class="btn btn--red" type="submit" style="justify-content:center">Send my photos →</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="foot__big" aria-hidden="true">KŌDO</div>
+    <div class="foot__row small"><span>© Kōdo Models</span><span>Paris · Milan · Tokyo · New York</span><span>Instagram · Book talent</span></div>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const flash = (el = $("#flash"), peak = 1) => {
+    el.animate([{ opacity: peak }, { opacity: 0 }], { duration: 520, easing: "cubic-bezier(.2,.8,.2,1)" });
+  };
+
+  /* ===================== loader: shuffle the contact sheet ===================== */
+  const stack = $$("#stack img");
+  let loaded = 0; stack.forEach((im) => (im.complete ? loaded++ : im.addEventListener("load", () => loaded++, { once: true })));
+  let i = 0;
+  const shuffle = setInterval(() => {
+    stack.forEach((im) => im.classList.remove("is-on"));
+    stack[i % stack.length].classList.add("is-on");
+    $("#count").textContent = String(Math.min(i + 1, 6)).padStart(3, "0");
+    i++;
+    if (i >= 6 && loaded >= stack.length - 1) { clearInterval(shuffle); setTimeout(open, 260); }
+  }, 230);
+
+  function open() {
+    flash();
+    $("#loader").classList.add("is-done");
+    document.body.classList.remove("is-loading");
+    if (!window.gsap) { $$(".hero__word span span, .polaroid, .rise").forEach((e) => { e.style.opacity = 1; e.style.transform = "none"; }); $("#lead").style.clipPath = "none"; return; }
+    const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+    tl.to(".hero__word .mask > span", { y: 0, yPercent: 0, duration: 1.4, stagger: .07 }, .05)
+      .to("#lead", { clipPath: "inset(0% 0 0 0)", duration: 1.4, ease: "expo.inOut" }, .25)
+      .to("#lead img", { scale: 1, duration: 2, ease: "expo.out" }, .4)
+      .add(throwIn, .8)
+      .to(".rise", { opacity: 1, y: 0, duration: 1.2, stagger: .1 }, 1.1);
+    scroll();
+  }
+
+  /* ===================== the polaroids: thrown in, then yours to move ===================== */
+  const cards = $$(".polaroid").map((el) => ({
+    el, x: 0, y: 0, r: +el.dataset.r, tx: 0, ty: 0, vx: 0, vy: 0, held: false, home: [+el.dataset.x, +el.dataset.y], phase: Math.random() * 6,
+  }));
+  const place = () => cards.forEach((c) => {
+    c.tx = innerWidth / 2 + (c.home[0] / 100) * innerWidth - c.el.offsetWidth / 2;
+    c.ty = innerHeight / 2 + (c.home[1] / 100) * innerHeight - c.el.offsetHeight / 2;
+    if (innerWidth < 700) { c.tx = innerWidth / 2 + (c.home[0] / 100) * innerWidth * 1.1 - c.el.offsetWidth / 2; c.ty = Math.max(78, innerHeight * .42 + (c.home[1] / 100) * innerHeight * 1.2 - c.el.offsetHeight / 2); }
+  });
+  function throwIn() {
+    place();
+    cards.forEach((c, k) => {
+      c.x = c.tx + (c.home[0] < 0 ? -1 : 1) * innerWidth * .5; c.y = c.ty + 200; c.el.style.opacity = 1;
+      gsap.to(c, { x: c.tx, y: c.ty, duration: 1.5, delay: k * .08, ease: "expo.out" });
+    });
+  }
+  addEventListener("resize", place);
+  let top = 10;
+  cards.forEach((c) => {
+    c.el.addEventListener("pointerdown", (e) => {
+      c.held = true; c.el.classList.add("is-held"); c.el.style.zIndex = ++top; c.el.setPointerCapture(e.pointerId);
+      gsap.killTweensOf(c);
+      const ox = e.clientX - c.x, oy = e.clientY - c.y; let lx = e.clientX, ly = e.clientY;
+      const move = (ev) => { c.vx = ev.clientX - lx; c.vy = ev.clientY - ly; lx = ev.clientX; ly = ev.clientY; c.x = ev.clientX - ox; c.y = ev.clientY - oy; };
+      const up = () => { c.held = false; c.el.classList.remove("is-held"); c.el.removeEventListener("pointermove", move); c.el.removeEventListener("pointerup", up); flash($("#flash"), .35); };
+      c.el.addEventListener("pointermove", move); c.el.addEventListener("pointerup", up);
+    });
+  });
+  (function loop(ms) {
+    const t = (ms || 0) / 1000;
+    cards.forEach((c) => {
+      if (!c.held) { c.x += c.vx; c.y += c.vy; c.vx *= .9; c.vy *= .9; }
+      const bob = reduced ? 0 : Math.sin(t * .9 + c.phase) * 5;
+      const tilt = c.r + (c.held ? 0 : Math.sin(t * .6 + c.phase) * 1.5) + c.vx * .4;
+      c.el.style.transform = `translate(${c.x}px, ${c.y + bob}px) rotate(${tilt}deg) scale(${c.held ? 1.08 : 1})`;
+    });
+    requestAnimationFrame(loop);
+  })();
+
+  /* ===================== scroll ===================== */
+  function scroll() {
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.to(".hero__word", { yPercent: -18, ease: "none", scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true } });
+    gsap.to("#lead", { y: -120, ease: "none", scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true } });
+
+    // The board: the row nearest the middle of the screen is the one on show.
+    const rows = $$(".row"), frames = $$("#frame img");
+    let current = 0;
+    const show = (n, withFlash = true) => {
+      if (n === current) return;
+      current = n;
+      rows.forEach((r, k) => r.classList.toggle("is-on", k === n));
+      frames.forEach((f, k) => f.classList.toggle("is-on", k === n));
+      $("#capName").textContent = rows[n].querySelector("b").textContent;
+      $("#capN").textContent = String(n + 1).padStart(2, "0") + " / 06";
+      if (withFlash) flash($("#frameFlash"), .8);
+    };
+    rows[0].classList.add("is-on");
+    rows.forEach((r, k) => ScrollTrigger.create({ trigger: r, start: "top 55%", end: "bottom 55%", onToggle: (s) => s.isActive && show(k) }));
+    rows.forEach((r, k) => r.addEventListener("pointerenter", () => show(k)));
+    gsap.from(".index__head h2, .index__head p", { y: 60, opacity: 0, duration: 1.2, ease: "expo.out", stagger: .1, scrollTrigger: { trigger: ".index", start: "top 75%" } });
+    gsap.from(".row", { y: 50, opacity: 0, duration: 1, ease: "expo.out", stagger: .06, scrollTrigger: { trigger: "#rows", start: "top 85%" } });
+
+    // Faces slide past at the speed of the scroll.
+    gsap.fromTo("#stripRow", { x: 0 }, { x: () => -($("#stripRow").scrollWidth - innerWidth), ease: "none", scrollTrigger: { trigger: "#faces", start: "top bottom", end: "bottom top", scrub: 1, invalidateOnRefresh: true } });
+
+    $$("[data-n]").forEach((el) => ScrollTrigger.create({ trigger: el, start: "top 90%", once: true, onEnter: () => gsap.to({ v: 0 }, { v: +el.dataset.n, duration: 2, ease: "expo.out", onUpdate() { el.textContent = Math.round(this.targets()[0].v).toLocaleString("en-US"); } }) }));
+    gsap.from(".join h2, .join p, .drop", { y: 60, opacity: 0, duration: 1.3, ease: "expo.out", stagger: .1, scrollTrigger: { trigger: "#join", start: "top 70%" } });
+    gsap.from(".foot__big", { yPercent: 40, opacity: 0, duration: 1.4, ease: "expo.out", scrollTrigger: { trigger: ".foot", start: "top 90%" } });
+  }
+
+  /* ===================== a portrait that follows the pointer over the board ===================== */
+  const follow = $("#follow"), fimg = $("img", follow);
+  let px = 0, py = 0, qx = 0, qy = 0;
+  $$(".row").forEach((r) => {
+    r.addEventListener("pointerenter", () => { if (matchMedia("(min-width: 961px)").matches) return; fimg.src = r.dataset.img; follow.classList.add("is-on"); });
+    r.addEventListener("pointerleave", () => follow.classList.remove("is-on"));
+  });
+  addEventListener("pointermove", (e) => { px = e.clientX; py = e.clientY; });
+  (function f() { qx += (px - qx) * .15; qy += (py - qy) * .15; follow.style.left = qx + "px"; follow.style.top = qy + "px"; requestAnimationFrame(f); })();
+})();
+</script>
+</body>
+</html>
